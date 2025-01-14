@@ -37,7 +37,8 @@ public class UserService {
         }
 
         if (!Validation.isValidPassword(user.getPassword())) {
-            throw new GlobalException("Invalid password format: min 8 max 12-2 numbers no consecutive, Ex: a2asdf3jjaaM ", HttpStatus.BAD_GATEWAY);
+            throw new GlobalException("Invalid password format: min 8 max 12 Characters" +
+                    ", 2 numbers no consecutive, Ex: a2asdf3jjaaM ", HttpStatus.BAD_GATEWAY);
         }
 
         user.setPassword(Password.encrypt(user.getPassword()));
@@ -56,9 +57,15 @@ public class UserService {
      * @return
      */
     public User login(String token) {
+
+        HttpStatus status = jwtUtil.validateToken(token);
+        if (status != HttpStatus.OK) {
+            throw new GlobalException("Token validation failed with status: ", status);
+        }
+
         String email = jwtUtil.extractUsername(token);
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new GlobalException("User not found", HttpStatus.NOT_FOUND));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new GlobalException("User not found  ", HttpStatus.NOT_FOUND));
 
         user.setLastLogin(LocalDateTime.now());
         user.setToken(jwtUtil.generateToken(user.getEmail()));
