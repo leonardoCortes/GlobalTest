@@ -1,7 +1,6 @@
-import com.global.evaluation.app.util.GlobalException;
+import com.global.evaluation.app.exception.GlobalException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GlobalExceptionTest {

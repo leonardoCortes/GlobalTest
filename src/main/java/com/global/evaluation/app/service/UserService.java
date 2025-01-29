@@ -2,7 +2,7 @@ package com.global.evaluation.app.service;
 
 import com.global.evaluation.app.model.User;
 import com.global.evaluation.app.repository.UserRepository;
-import com.global.evaluation.app.util.GlobalException;
+import com.global.evaluation.app.exception.GlobalException;
 import com.global.evaluation.app.util.Jwt;
 import com.global.evaluation.app.util.Password;
 import com.global.evaluation.app.util.Validation;

@@ -9,7 +9,7 @@ import java.util.Date;
 @Component
 public class Jwt {
 
-    private static final String SECRET_KEY = "mySecretKey";
+    public static final String SECRET_KEY = "mySecretKey";
 
     /**
      * Generate Token Method

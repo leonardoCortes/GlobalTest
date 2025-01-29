@@ -1,4 +1,5 @@
 import com.global.evaluation.app.controller.UserController;
+import com.global.evaluation.app.exception.GlobalException;
 import com.global.evaluation.app.model.User;
 import com.global.evaluation.app.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,71 +7,90 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class UserControllerTest {
-
-    @InjectMocks
-    private UserController userController;
+class UserControllerTest {
 
     @Mock
     private UserService userService;
 
-    private User mockUser;
+    @InjectMocks
+    private UserController userController;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockUser = new User();
-        mockUser.setName("Leonardo");
-        mockUser.setEmail("test@example.com");
-        mockUser.setPassword("Leo4nardo7");
     }
 
     @Test
-    void testSignUpSuccess() {
-        when(userService.signUp(any(User.class))).thenReturn(mockUser);
+    void testSignUp_Success() throws GlobalException {
+        User user = new User();
+        user.setName("testUser");
+        user.setPassword("testPassword");
 
-        ResponseEntity<?> response = userController.signUp(mockUser);
+        when(userService.signUp(any(User.class))).thenReturn(user);
 
-        assertEquals(201, response.getStatusCodeValue());
-        assertEquals(mockUser, response.getBody());
+        ResponseEntity<?> response = userController.signUp(user);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(user, response.getBody());
+        verify(userService, times(1)).signUp(any(User.class));
     }
 
     @Test
-    void testSignUpFailureInvalidEmail() {
-        mockUser.setEmail("invalidemail");
-        doThrow(new IllegalArgumentException("Invalid email format")).when(userService).signUp(any(User.class));
+    void testSignUp_GlobalException() throws GlobalException {
+        User user = new User();
+        user.setName("testUser");
+        user.setPassword("testPassword");
 
-        ResponseEntity<?> response = userController.signUp(mockUser);
+        GlobalException globalException = new GlobalException("User already exists", HttpStatus.CONFLICT);
 
-        assertEquals(400, response.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) response.getBody()).get("error").toString().contains("Invalid email format"));
+        when(userService.signUp(any(User.class))).thenThrow(globalException);
+
+        ResponseEntity<?> response = userController.signUp(user);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
+        assertEquals("User already exists", responseBody.get("detalle"));
+        assertEquals(HttpStatus.CONFLICT.value(), responseBody.get("codigo"));
+        verify(userService, times(1)).signUp(any(User.class));
     }
 
     @Test
-    void testLoginSuccess() {
-        when(userService.login(anyString())).thenReturn(mockUser);
+    void testLogin_Success() throws GlobalException {
+        String token = "validToken";
+        User user = new User();
+        user.setName("testUser");
+        user.setPassword("testPassword");
 
-        ResponseEntity<?> response = userController.login("valid-token");
+        when(userService.login(any(String.class))).thenReturn(user);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(mockUser, response.getBody());
+        ResponseEntity<?> response = userController.login("Bearer " + token);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(user, response.getBody());
+        verify(userService, times(1)).login(any(String.class));
     }
 
     @Test
-    void testLoginFailureInvalidToken() {
-        doThrow(new IllegalArgumentException("Invalid or expired token")).when(userService).login(anyString());
+    void testLogin_GlobalException() throws GlobalException {
+        String token = "invalidToken";
 
-        ResponseEntity<?> response = userController.login("invalid-token");
+        GlobalException globalException = new GlobalException("Invalid token", HttpStatus.UNAUTHORIZED);
 
-        assertEquals(401, response.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) response.getBody()).get("error").toString().contains("Invalid or expired token"));
+        when(userService.login(any(String.class))).thenThrow(globalException);
+
+        ResponseEntity<?> response = userController.login("Bearer " + token);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
+        assertEquals("Invalid token"+HttpStatus.UNAUTHORIZED, responseBody.get("detalle"));
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), responseBody.get("codigo"));
+        verify(userService, times(1)).login(any(String.class));
     }
 }

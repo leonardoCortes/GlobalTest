@@ -1,8 +1,6 @@
 import com.global.evaluation.app.util.Password;
 import org.junit.jupiter.api.Test;
-
 import java.util.Base64;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PasswordTest {

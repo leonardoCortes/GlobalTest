@@ -2,7 +2,7 @@ package com.global.evaluation.app.controller;
 
 import com.global.evaluation.app.model.User;
 import com.global.evaluation.app.service.UserService;
-import com.global.evaluation.app.util.GlobalException;
+import com.global.evaluation.app.exception.GlobalException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
